@@ -1,0 +1,8 @@
+// 全页卡片
+.card_outersider_full{
+    background-color: rgb(255,255,255);
+    width:calc( 100% - 20px);
+    border-radius: 10px;
+    margin: 10px;
+    min-height: calc(100vh - 70px);
+}

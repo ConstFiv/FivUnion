@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" >
     <router-view />
   </div>
 </template>
@@ -9,3 +9,10 @@ export default {
   name: 'App'
 }
 </script>
+
+<style scoped lang="scss">
+#app{
+  background-color:rgb(222,225,230);
+}
+
+</style>

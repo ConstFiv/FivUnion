@@ -3,7 +3,7 @@
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
 
       <div class="title-container">
-        <h3 class="title">注册</h3>
+        <h3 class="title">注册【废物联盟】账号</h3>
       </div>
 
       <el-form-item prop="username">
@@ -41,11 +41,30 @@
         </span>
       </el-form-item>
 
-      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
+      <el-form-item prop="password">
+        <span class="svg-container">
+          <svg-icon icon-class="password" />
+        </span>
+        <el-input
+          :key="passwordType"
+          ref="password"
+          v-model="loginForm.password"
+          :type="passwordType"
+          placeholder="Password"
+          name="password"
+          tabindex="2"
+          auto-complete="on"
+          @keyup.enter.native="handleLogin"
+        />
+        <span class="show-pwd" @click="showPwd">
+          <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
+        </span>
+      </el-form-item>
+      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">注册</el-button>
 
       <div class="tips">
-        <span style="margin-right:20px;">还没有账号? </span>
-        <span @click="handleSignIn" style="color:rgb(80,192,142);text-decoration:underline;cursor: pointer;"> 点我进行注册</span>
+        <span style="margin-right:20px;">已经有账号了? </span>
+        <span @click="handleSignIn" style="color:rgb(80,192,142);text-decoration:underline;cursor: pointer;"> 直接去登录</span>
       </div>
 
     </el-form>
@@ -95,9 +114,9 @@ export default {
     }
   },
   methods: {
-    // 进行注册操作
+    // 进行登录操作
     handleSignIn(){
-      
+      this.$router.push({ path: "/login" })
     },
 
 

@@ -1,95 +1,65 @@
-import { login, logout, getInfo } from '@/api/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
-import { resetRouter } from '@/router'
-
-const getDefaultState = () => {
-  return {
-    token: getToken(),
-    name: '',
-    avatar: ''
-  }
+import requestNoToken from '@/utils/requestNoToken.js'
+import request from '@/utils/request.js'
+import { setCookie, getCookie, delCookie } from '@/utils/util.js';
+const state = {
+    tokenData:{},
+    ifLogOutSuccess:{},
+    ifSuccessEditPhoto:{},
+    loginRoleInfoData:{},
+    ifSuccessChangeSkin:{},
 }
 
-const state = getDefaultState()
-
 const mutations = {
-  RESET_STATE: (state) => {
-    Object.assign(state, getDefaultState())
-  },
-  SET_TOKEN: (state, token) => {
-    state.token = token
-  },
-  SET_NAME: (state, name) => {
-    state.name = name
-  },
-  SET_AVATAR: (state, avatar) => {
-    state.avatar = avatar
-  }
+    POSTLOGIN(state,tokenData){
+        state.tokenData = tokenData
+    },
+    POSTLOGOUT(state,ifLogOutSuccess){
+        state.ifLogOutSuccess = ifLogOutSuccess
+    },
+    PUTLOGINEDITPHOTO(state,ifSuccessEditPhoto){
+        state.ifSuccessEditPhoto = ifSuccessEditPhoto
+    },
+    GETLOGINROLEINFO(state,loginRoleInfoData){
+        state.loginRoleInfoData = loginRoleInfoData
+    },
+    POSTCHANGEMYSKIN(state,ifSuccessChangeSkin){
+        state.ifSuccessChangeSkin = ifSuccessChangeSkin
+    }
 }
 
 const actions = {
-  // user login
-  login({ commit }, userInfo) {
-    const { username, password } = userInfo
-    return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
-  },
+    // 提交登录信息获取token
+    async postLogin({commit},val){
+        const tokenData = await requestNoToken.post(`/login`,val)
+        setCookie("name", tokenData.data.name)
+        setCookie("id", tokenData.data.id)
+        setCookie("token", tokenData.data.access_token)
+        commit('POSTLOGIN',tokenData)
+    },
+    // 退出登录，清除token
+    async postLogout({commit}){
+        const ifLogOutSuccess = await request.post(`/sys/logout`)
+        commit('POSTLOGOUT',ifLogOutSuccess)
+    },
+    // 上传头像
+    async putLoginEditPhoto({ commit }, val) {
+        const ifSuccessEditPhoto = await request.put(`/sys/user/photo`, val);
+        commit("PUTLOGINEDITPHOTO", ifSuccessEditPhoto);
+    },
+    // 获取用户的详情
+    async getLoginRoleInfo({ commit }) {
+        const loginRoleInfoData = await request.get(`/sys/user/info`);
+        commit("GETLOGINROLEINFO", loginRoleInfoData);
+    },
 
-  // get user info
-  getInfo({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      getInfo(state.token).then(response => {
-        const { data } = response
-
-        if (!data) {
-          return reject('Verification failed, please Login again.')
-        }
-
-        const { name, avatar } = data
-
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        resolve(data)
-      }).catch(error => {
-        reject(error)
-      })
-    })
-  },
-
-  // user logout
-  logout({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
-        removeToken() // must remove  token  first
-        resetRouter()
-        commit('RESET_STATE')
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
-  },
-
-  // remove token
-  resetToken({ commit }) {
-    return new Promise(resolve => {
-      removeToken() // must remove  token  first
-      commit('RESET_STATE')
-      resolve()
-    })
-  }
+    // 修改皮肤
+    async postChangeMySkin({ commit }, val) {
+        const ifSuccessChangeSkin = await request.post(`/sys/user/skin?skin=${val}`);
+        commit("POSTCHANGEMYSKIN", ifSuccessChangeSkin);
+    },
 }
 
 export default {
-  namespaced: true,
   state,
   mutations,
   actions

@@ -1,6 +1,6 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
+    <el-form ref="loginForm" :model="loginForm"  class="login-form" auto-complete="on" label-position="left">
 
       <div class="title-container">
         <h3 class="title">登录【废物联盟】</h3>
@@ -11,27 +11,27 @@
           <svg-icon icon-class="user" />
         </span>
         <el-input
-          ref="username"
-          v-model="loginForm.username"
+          ref="principal"
+          v-model="loginForm.principal"
           placeholder="Username"
-          name="username"
+          name="principal"
           type="text"
           tabindex="1"
           auto-complete="on"
         />
       </el-form-item>
 
-      <el-form-item prop="password">
+      <el-form-item prop="credentials">
         <span class="svg-container">
           <svg-icon icon-class="password" />
         </span>
         <el-input
           :key="passwordType"
-          ref="password"
-          v-model="loginForm.password"
+          ref="credentials"
+          v-model="loginForm.credentials"
           :type="passwordType"
           placeholder="Password"
-          name="password"
+          name="credentials"
           tabindex="2"
           auto-complete="on"
           @keyup.enter.native="handleLogin"
@@ -53,37 +53,20 @@
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
 
 export default {
   name: 'Login',
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
-      } else {
-        callback()
-      }
-    }
-    const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('The password can not be less than 6 digits'))
-      } else {
-        callback()
-      }
-    }
     return {
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        principal: 'admin',
+        credentials: 'abc123456',
+        identity:'pc',
       },
-      loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
-      },
+     
       loading: false,
       passwordType: 'password',
-      redirect: undefined
+      redirect: '/'
     }
   },
   watch: {
@@ -93,7 +76,7 @@ export default {
       },
       immediate: true
     }
-  },
+  }, 
   methods: {
     // 进行注册操作
     handleSignIn(){
@@ -111,18 +94,27 @@ export default {
         this.$refs.password.focus()
       })
     },
-    handleLogin() {
+     handleLogin() {
+      // this.$router.push({ path:this.redirect || '/'  }) 
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
-            this.$router.push({ path: this.redirect || '/' })
-            this.loading = false
-          }).catch(() => {
-            this.loading = false
-          })
-        } else {
-          console.log('error submit!!')
+          this.$store.dispatch('postLogin', { principal:this.loginForm.principal, credentials: this.loginForm.credentials, identity: "pc" }).then(() => {
+               console.log("路由跳转前的数据",this.$store.state.user)
+             
+               if (this.$store.state.user.tokenData.errorCode == 0) {
+                // 路由跳转
+                // this.$router.push({ path: this.redirect || '/' })
+                  this.$router.push({ path: this.redirect || '/404' })
+               }else{
+                 // 验证失败提示
+                 this.$message.error(this.$store.state.user.tokenData.message)
+                 this.loading = false
+               }
+          })        
+          
+        }else {
+          console.log('您的账号密码格式不正确！')
           return false
         }
       })
